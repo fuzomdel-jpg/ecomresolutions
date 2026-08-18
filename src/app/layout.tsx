@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Providers } from "@/components/providers";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://ecomresolutions.com"),
+  title: {
+    default: "Ecom Resolutions — E-commerce problems. Resolved.",
+    template: "%s | Ecom Resolutions",
+  },
+  description: "Describe the issue. We'll diagnose it, fix it, and get it resolved.",
+  openGraph: {
+    title: "What's wrong with your store?",
+    description: "Fixed-price expert resolution for Amazon, Walmart, Shopify, Google Merchant Center and TikTok Shop.",
+    type: "website",
+  },
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}

@@ -1,0 +1,536 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  EXPERT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrgRole {
+  OWNER
+  MANAGER
+  EMPLOYEE
+  AGENCY
+}
+
+enum CaseStatus {
+  NEW
+  DIAGNOSING
+  WAITING_FOR_CUSTOMER
+  IN_PROGRESS
+  QA
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+enum Priority {
+  STANDARD
+  PRIORITY
+  URGENT
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  REQUIRES_ACTION
+}
+
+enum Complexity {
+  QUICK
+  STANDARD
+  COMPLEX
+  DIAGNOSTIC
+}
+
+enum MessageAuthorType {
+  CUSTOMER
+  SPECIALIST
+  SYSTEM
+}
+
+enum MessageKind {
+  TEXT
+  STATUS
+  RESOLUTION
+  CARD
+  REQUEST_INFO
+}
+
+enum AIAnalysisStatus {
+  PENDING
+  ACCEPTED
+  EDITED
+  IGNORED
+}
+
+enum IntakeStatus {
+  STARTED
+  GATHERING
+  DIAGNOSED
+  CHECKOUT
+  CONVERTED
+  ABANDONED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          Role      @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts              Account[]
+  sessions              Session[]
+  memberships           OrganizationMember[]
+  customerCases         Case[]                 @relation("CustomerCases")
+  assignedCases         Case[]                 @relation("AssignedCases")
+  messages              CaseMessage[]
+  internalNotes         InternalNote[]
+  attachments           CaseAttachment[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]
+  statusChanges         CaseStatusHistory[]
+  intakeSessions        IntakeSession[]
+  aiDecisions           AIAnalysis[]           @relation("AIReviewer")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members         OrganizationMember[]
+  cases           Case[]
+  payments        Payment[]
+  subscriptions   Subscription[]
+  intakeSessions  IntakeSession[]
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  orgRole        OrgRole  @default(OWNER)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model Platform {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  shortName   String
+  description String
+  accent      String   @default("#2563eb")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories     ServiceCategory[]
+  services       Service[]
+  cases          Case[]
+  problemPages   ProblemPage[]
+  intakeSessions IntakeSession[]
+}
+
+model ServiceCategory {
+  id          String  @id @default(cuid())
+  slug        String
+  name        String
+  description String  @default("")
+  platformId  String
+  sortOrder   Int     @default(0)
+
+  platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  services Service[]
+
+  @@unique([platformId, slug])
+}
+
+model Service {
+  id                         String     @id @default(cuid())
+  slug                       String     @unique
+  name                       String
+  shortDescription           String
+  description                String     @db.Text
+  includedScope              String[]
+  excludedScope              String[]
+  requiredInformation        String[]
+  requiredAccess             String[]
+  requiredAttachments        String[]
+  intakeQuestions            Json
+  priceCents                 Int
+  priceFrom                  Boolean    @default(false)
+  currency                   String     @default("usd")
+  complexity                 Complexity
+  slaLabel                   String
+  slaHours                   Int
+  isActive                   Boolean    @default(true)
+  isPopular                  Boolean    @default(false)
+  diagnosticEligible         Boolean    @default(false)
+  diagnosticCreditEnabled    Boolean    @default(true)
+  subscriptionEligible       Boolean    @default(false)
+  seoTitle                   String
+  seoDescription             String
+  ogTitle                    String?
+  ogDescription              String?
+  sortOrder                  Int        @default(0)
+  platformId                 String
+  categoryId                 String?
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+
+  platform       Platform         @relation(fields: [platformId], references: [id])
+  category       ServiceCategory? @relation(fields: [categoryId], references: [id])
+  cases          Case[]
+  problemPages   ProblemPage[]
+  payments       Payment[]
+  intakeSessions IntakeSession[]
+}
+
+model PricingTier {
+  id             String     @id @default(cuid())
+  slug           String     @unique
+  name           String
+  priceCents     Int
+  priceFrom      Boolean    @default(false)
+  description    String
+  complexity     Complexity
+  isMostPopular  Boolean    @default(false)
+  sortOrder      Int        @default(0)
+}
+
+model ProblemPage {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  h1             String
+  problem        String   @db.Text
+  commonCauses   String[]
+  whatWeCheck    String[]
+  whatWeCanFix   String[]
+  faqs           Json
+  seoTitle       String
+  seoDescription String
+  platformId     String
+  serviceId      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  platform Platform @relation(fields: [platformId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+}
+
+model KnowledgeArticle {
+  id             String    @id @default(cuid())
+  slug           String    @unique
+  title          String
+  excerpt        String
+  body           String    @db.Text
+  published      Boolean   @default(true)
+  seoTitle       String
+  seoDescription String
+  publishedAt    DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model IntakeSession {
+  id                   String       @id @default(cuid())
+  guestToken           String       @unique
+  userId               String?
+  organizationId       String?
+  platformId           String?
+  recommendedServiceId String?
+  status               IntakeStatus @default(STARTED)
+  problemText          String       @db.Text
+  messages             Json
+  diagnosis            Json?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  user               User?         @relation(fields: [userId], references: [id])
+  organization       Organization? @relation(fields: [organizationId], references: [id])
+  platform           Platform?     @relation(fields: [platformId], references: [id])
+  recommendedService Service?      @relation(fields: [recommendedServiceId], references: [id])
+  attachments        CaseAttachment[]
+  payments           Payment[]
+  aiAnalyses         AIAnalysis[]
+  convertedCase      Case?
+}
+
+model Case {
+  id              String        @id @default(cuid())
+  caseNumber      String        @unique
+  organizationId  String
+  customerId      String
+  platformId      String
+  serviceId       String
+  intakeSessionId String?       @unique
+  title           String
+  description     String        @db.Text
+  status          CaseStatus    @default(NEW)
+  priority        Priority      @default(STANDARD)
+  priceCents      Int
+  paymentStatus   PaymentStatus @default(PENDING)
+  assignedAgentId String?
+  slaHours        Int
+  slaDueAt        DateTime
+  resolvedAt      DateTime?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organization  Organization   @relation(fields: [organizationId], references: [id])
+  customer      User           @relation("CustomerCases", fields: [customerId], references: [id])
+  assignedAgent User?          @relation("AssignedCases", fields: [assignedAgentId], references: [id])
+  platform      Platform       @relation(fields: [platformId], references: [id])
+  service       Service        @relation(fields: [serviceId], references: [id])
+  intakeSession IntakeSession? @relation(fields: [intakeSessionId], references: [id])
+  messages      CaseMessage[]
+  attachments   CaseAttachment[]
+  statusHistory CaseStatusHistory[]
+  payments      Payment[]
+  notifications Notification[]
+  internalNotes InternalNote[]
+  aiAnalyses    AIAnalysis[]
+  resolution    Resolution?
+}
+
+model CaseSequence {
+  id         Int @id @default(1)
+  lastNumber Int @default(10000)
+}
+
+model CaseMessage {
+  id         String             @id @default(cuid())
+  caseId     String
+  authorId   String?
+  authorType MessageAuthorType
+  body       String             @db.Text
+  kind       MessageKind        @default(TEXT)
+  metadata   Json?
+  createdAt  DateTime           @default(now())
+
+  case        Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  author      User?            @relation(fields: [authorId], references: [id])
+  attachments CaseAttachment[]
+}
+
+model InternalNote {
+  id        String   @id @default(cuid())
+  caseId    String
+  authorId  String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  case   Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model CaseAttachment {
+  id            String   @id @default(cuid())
+  caseId        String?
+  messageId     String?
+  intakeSessionId String?
+  uploadedById  String?
+  filename      String
+  mimeType      String
+  sizeBytes     Int
+  storageKey    String
+  createdAt     DateTime @default(now())
+
+  case          Case?          @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  message       CaseMessage?   @relation(fields: [messageId], references: [id])
+  intakeSession IntakeSession? @relation(fields: [intakeSessionId], references: [id])
+  uploadedBy    User?          @relation(fields: [uploadedById], references: [id])
+}
+
+model CaseStatusHistory {
+  id           String      @id @default(cuid())
+  caseId       String
+  fromStatus   CaseStatus?
+  toStatus     CaseStatus
+  changedById  String?
+  note         String?
+  createdAt    DateTime    @default(now())
+
+  case      Case  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  changedBy User? @relation(fields: [changedById], references: [id])
+}
+
+model Payment {
+  id                       String        @id @default(cuid())
+  stripePaymentIntentId    String?       @unique
+  stripeCheckoutSessionId  String?       @unique
+  amountCents              Int
+  currency                 String        @default("usd")
+  status                   PaymentStatus @default(PENDING)
+  caseId                   String?
+  organizationId           String?
+  serviceId                String?
+  intakeSessionId          String?
+  metadata                 Json?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+
+  case          Case?          @relation(fields: [caseId], references: [id])
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
+  service       Service?       @relation(fields: [serviceId], references: [id])
+  intakeSession IntakeSession? @relation(fields: [intakeSessionId], references: [id])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  stripeSubscriptionId String?  @unique
+  status               String   @default("inactive")
+  priceId              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  caseId    String?
+  createdAt DateTime  @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case Case? @relation(fields: [caseId], references: [id])
+}
+
+model AIAnalysis {
+  id                              String           @id @default(cuid())
+  caseId                          String?
+  intakeSessionId                 String?
+  platform                        String?
+  issueCategory                   String?
+  probableCause                   String?
+  confidence                      Float?
+  complexity                      Complexity?
+  recommendedServiceSlug          String?
+  recommendedPriceCents           Int?
+  estimatedSla                    String?
+  additionalInformationRequired   Json?
+  questions                       Json?
+  rawOutput                       Json?
+  status                          AIAnalysisStatus @default(PENDING)
+  reviewedById                    String?
+  createdAt                       DateTime         @default(now())
+  updatedAt                       DateTime         @updatedAt
+
+  case          Case?          @relation(fields: [caseId], references: [id])
+  intakeSession IntakeSession? @relation(fields: [intakeSessionId], references: [id])
+  reviewedBy    User?          @relation("AIReviewer", fields: [reviewedById], references: [id])
+}
+
+model Resolution {
+  id                     String   @id @default(cuid())
+  caseId                 String   @unique
+  problem                String   @db.Text
+  rootCause              String   @db.Text
+  actionTaken            String   @db.Text
+  verification           String   @db.Text
+  result                 String   @db.Text
+  recommendedPrevention  String   @db.Text
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  name       String
+  properties Json?
+  userId     String?
+  sessionId  String?
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+}
