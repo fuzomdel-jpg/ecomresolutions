@@ -2,10 +2,15 @@
   "name": "ecomresolutions",
   "version": "0.1.0",
   "private": true,
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
+    "postinstall": "prisma generate",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "node server.js",
     "lint": "eslint",
     "test": "tsx --test src/lib/search.test.ts",
     "db:generate": "prisma generate",
