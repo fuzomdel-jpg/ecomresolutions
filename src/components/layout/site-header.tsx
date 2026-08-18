@@ -17,10 +17,10 @@ export async function SiteHeader({ platforms }: { platforms: Awaited<ReturnType<
     : 0;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+    <header className="sticky top-0 z-50 overflow-visible border-b border-border bg-white/90 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 overflow-visible px-4">
         <Logo />
-        <nav className="hidden flex-1 items-center justify-center gap-6 md:flex">
+        <nav className="relative hidden flex-1 items-center justify-center gap-6 overflow-visible md:flex">
           <ServicesMenu platforms={platforms} />
           <Link className="text-sm text-navy hover:text-accent" href="/how-it-works">
             How It Works
