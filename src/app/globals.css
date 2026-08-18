@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f9fc;
-  --foreground: #0b1f33;
+  --background: #f7f8fb;
+  --foreground: #0a1628;
   --card: #ffffff;
-  --muted: #5b6b80;
-  --border: #e6ebf2;
-  --accent: #2563eb;
-  --accent-soft: #eef4ff;
-  --navy: #0b1f33;
-  --ring: #2563eb;
+  --muted: #5c6b80;
+  --border: #e4e9f2;
+  --accent: #2f6bff;
+  --accent-soft: #e8efff;
+  --navy: #0a1628;
+  --ring: #2f6bff;
 }
 
 @theme inline {
@@ -46,8 +46,8 @@ body {
 
 .composer-shadow {
   box-shadow:
-    0 1px 2px rgba(15, 31, 61, 0.04),
-    0 12px 32px rgba(15, 31, 61, 0.06);
+    0 1px 2px rgba(10, 22, 40, 0.04),
+    0 12px 32px rgba(47, 107, 255, 0.08);
 }
 
 .no-scrollbar::-webkit-scrollbar {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth-helpers";
 import { isStaff } from "@/lib/rbac";
+import { Logo } from "@/components/brand/logo";
 
 const items = [
   ["Inbox", "/admin"],
@@ -21,8 +22,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-full">
       <aside className="hidden w-56 border-r border-border bg-white p-4 md:block">
-        <p className="text-sm font-semibold text-navy">Ecom Resolutions</p>
-        <p className="text-xs text-muted">Specialist console</p>
+        <Logo compact />
+        <p className="mt-3 text-xs text-muted">Specialist console</p>
         <nav className="mt-6 space-y-1 text-sm">
           {items.map(([label, href]) => (
             <Link key={href} href={href} className="block rounded-lg px-3 py-2 hover:bg-accent-soft">

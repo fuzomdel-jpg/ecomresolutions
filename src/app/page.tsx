@@ -27,7 +27,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <PublicShell>
       <div className="mx-auto max-w-6xl px-4 pb-20">
         <section className="pt-12 text-center md:pt-16">
-          <p className="text-sm font-medium text-accent">E-commerce problems. Resolved.</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-navy">
+            E-commerce problems. Resolved.
+          </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy md:text-5xl">
             What&apos;s wrong with your store?
           </h1>

@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     template: "%s | Ecom Resolutions",
   },
   description: "Describe the issue. We'll diagnose it, fix it, and get it resolved.",
+  icons: {
+    icon: "/brand/mark.svg",
+    shortcut: "/brand/mark.svg",
+  },
   openGraph: {
     title: "What's wrong with your store?",
     description: "Fixed-price expert resolution for Amazon, Walmart, Shopify, Google Merchant Center and TikTok Shop.",
