@@ -285,6 +285,8 @@ model KnowledgeArticle {
   title          String
   excerpt        String
   body           String    @db.Text
+  authorName     String    @default("Ecom Resolutions")
+  keywords       String[]
   published      Boolean   @default(true)
   seoTitle       String
   seoDescription String

@@ -11,6 +11,7 @@ const items = [
   ["Services", "/admin/services"],
   ["Platforms", "/admin/platforms"],
   ["Knowledge", "/admin/knowledge"],
+  ["Blog", "/admin/blog"],
   ["Team", "/admin/team"],
   ["Analytics", "/admin/analytics"],
   ["Settings", "/admin/settings"],

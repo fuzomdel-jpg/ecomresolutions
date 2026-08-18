@@ -6,6 +6,7 @@ import {
   pricingTiers,
   servicesByPlatform,
 } from "./catalog";
+import { blogPosts } from "./blogs";
 
 const prisma = new PrismaClient();
 
@@ -183,7 +184,7 @@ async function main() {
     }
   }
 
-  for (const article of knowledgeArticles) {
+  for (const article of [...knowledgeArticles, ...blogPosts]) {
     await prisma.knowledgeArticle.upsert({
       where: { slug: article.slug },
       update: article,

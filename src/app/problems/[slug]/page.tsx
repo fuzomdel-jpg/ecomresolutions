@@ -6,6 +6,9 @@ import { ProblemComposer } from "@/components/composer/problem-composer";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { formatUsd } from "@/lib/utils";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema, faqSchema } from "@/lib/seo/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +19,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: page.seoTitle,
     description: page.seoDescription,
+    keywords: [page.title, page.h1],
     alternates: { canonical: `/problems/${page.slug}` },
+    openGraph: { title: page.h1, description: page.seoDescription },
   };
 }
 
@@ -30,8 +35,23 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
   const faqs = (page.faqs as { q: string; a: string }[]) ?? [];
   return (
     <PublicShell>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Problems", path: "/services" },
+          { name: page.h1, path: `/problems/${page.slug}` },
+        ])}
+      />
+      <JsonLd data={faqSchema(faqs)} />
       <div className="mx-auto max-w-3xl px-4 py-12">
-        <p className="text-sm text-accent">{page.platform.name}</p>
+        <Breadcrumbs
+          items={[
+            { name: "Home", href: "/" },
+            { name: page.platform.name, href: `/platforms/${page.platform.slug}` },
+            { name: page.h1, href: `/problems/${page.slug}` },
+          ]}
+        />
+        <p className="mt-4 text-sm text-accent">{page.platform.name}</p>
         <h1 className="mt-2 text-3xl font-semibold text-navy">{page.h1}</h1>
         <p className="mt-3 text-muted">{page.problem}</p>
         <h2 className="mt-8 font-semibold text-navy">Common causes</h2>

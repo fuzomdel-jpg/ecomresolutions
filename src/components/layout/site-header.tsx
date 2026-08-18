@@ -28,8 +28,8 @@ export async function SiteHeader({ platforms }: { platforms: Awaited<ReturnType<
           <Link className="text-sm text-navy hover:text-accent" href="/pricing">
             Pricing
           </Link>
-          <Link className="text-sm text-navy hover:text-accent" href="/resources">
-            Resources
+          <Link className="text-sm text-navy hover:text-accent" href="/blog">
+            Blog
           </Link>
           {user ? (
             <Link className="text-sm text-navy hover:text-accent" href="/app/cases">
@@ -81,6 +81,7 @@ export async function SiteHeader({ platforms }: { platforms: Awaited<ReturnType<
           <Link href="/services">Services</Link>
           <Link href="/how-it-works">How It Works</Link>
           <Link href="/pricing">Pricing</Link>
+          <Link href="/blog">Blog</Link>
           <Link href="/app/cases">My Cases</Link>
         </div>
       </div>

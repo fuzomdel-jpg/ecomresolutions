@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationSchema } from "@/lib/seo/schema";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,10 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || "https://ecomresolutions.com"),
   title: {
-    default: "Ecom Resolutions — E-commerce problems. Resolved.",
+    default: "Fix Amazon, Walmart, Shopify & Merchant Center Listing Problems | Ecom Resolutions",
     template: "%s | Ecom Resolutions",
   },
-  description: "Describe the issue. We'll diagnose it, fix it, and get it resolved.",
+  description:
+    "Diagnose and fix Amazon listing suppression, Walmart products not publishing, Shopify variant issues, Google Merchant Center disapprovals, and TikTok Shop rejections.",
   icons: {
     icon: "/brand/mark.svg",
     shortcut: "/brand/mark.svg",
@@ -35,7 +38,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Providers>{children}</Providers>
+        <Providers>
+          <JsonLd data={organizationSchema()} />
+          {children}
+        </Providers>
       </body>
     </html>
   );

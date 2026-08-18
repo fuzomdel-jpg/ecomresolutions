@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Clock, Lock, Shield, Wallet } from "lucide-react";
 import { PublicShell } from "@/components/layout/public-shell";
@@ -9,8 +10,32 @@ import { prisma } from "@/lib/db";
 import { formatUsd } from "@/lib/utils";
 import { faqs } from "@/lib/content/faqs";
 import { trackEvent } from "@/lib/analytics";
+import { homeSeo } from "@/lib/seo/keywords";
+import { faqSchema, howToSchema, organizationSchema } from "@/lib/seo/schema";
+import { JsonLd } from "@/components/seo/json-ld";
+import { ResolutionTrack } from "@/components/brand/resolution-track";
+import { OpsStrip } from "@/components/brand/ops-strip";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: { absolute: homeSeo.title },
+  description: homeSeo.description,
+  keywords: [
+    "amazon listing suppressed",
+    "walmart product not publishing",
+    "google merchant center product disapproved",
+    "shopify variant not working",
+    "tiktok shop product rejected",
+    "amazon listing not showing",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: homeSeo.h1,
+    description: homeSeo.description,
+    type: "website",
+  },
+};
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const params = await searchParams;
@@ -25,6 +50,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <PublicShell>
+      <JsonLd data={organizationSchema()} />
+      <JsonLd data={faqSchema(faqs)} />
+      <JsonLd data={howToSchema()} />
       <div className="mx-auto max-w-6xl px-4 pb-20">
         <section className="pt-12 text-center md:pt-16">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-navy">
@@ -37,11 +65,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             Describe the issue. We&apos;ll diagnose it, fix it, and get it resolved.
           </p>
           <p className="mx-auto mt-2 max-w-2xl text-sm text-muted">
-            Fixed-price expert resolution for Amazon, Walmart, Shopify, Google Merchant Center and TikTok Shop.
+            Fixed-price specialist resolution for Amazon listing suppression, Walmart products not publishing, Shopify
+            variant issues, Google Merchant Center disapprovals, and TikTok Shop rejections.
           </p>
           <div className="mt-8">
             <ProblemComposer initialValue={q} />
           </div>
+        </section>
+
+        <section className="mt-10">
+          <OpsStrip />
         </section>
 
         <section className="mt-12">
@@ -89,18 +122,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <section className="mt-16">
           <h2 className="text-xl font-semibold text-navy">How it works</h2>
           <p className="mt-2 text-sm text-muted">No long discovery calls. No unnecessary retainers.</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {[
-              ["01", "Tell us what's wrong."],
-              ["02", "We diagnose the issue."],
-              ["03", "We fix and verify it."],
-              ["04", "You receive the resolution report."],
-            ].map(([step, copy]) => (
-              <Card key={step} className="p-5">
-                <p className="text-xs font-semibold text-accent">{step}</p>
-                <p className="mt-2 font-medium text-navy">{copy}</p>
-              </Card>
-            ))}
+          <p className="mt-3 max-w-3xl text-sm text-navy">{homeSeo.answer}</p>
+          <div className="mt-6">
+            <ResolutionTrack current={0} />
           </div>
         </section>
 

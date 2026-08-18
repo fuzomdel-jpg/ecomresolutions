@@ -84,6 +84,18 @@ export const serviceUpdateSchema = z.object({
   seoDescription: z.string().min(1),
 });
 
+export const blogSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().min(1).max(200),
+  excerpt: z.string().min(1).max(400),
+  body: z.string().min(1),
+  authorName: z.string().min(1).max(120),
+  keywords: z.array(z.string()),
+  published: z.boolean(),
+  seoTitle: z.string().min(1).max(200),
+  seoDescription: z.string().min(1).max(320),
+});
+
 export const ALLOWED_UPLOAD_TYPES = [
   "image/png",
   "image/jpeg",

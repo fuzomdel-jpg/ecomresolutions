@@ -15,12 +15,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/pricing",
     "/how-it-works",
     "/security",
-    "/resources",
+    "/blog",
   ]
-    .map((path) => ({ url: `${base}${path}`, lastModified: new Date() }))
+    .map((path) => ({ url: `${base}${path}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: path === "" ? 1 : 0.8 }))
     .concat(
-      services.map((item) => ({ url: `${base}/services/${item.slug}`, lastModified: item.updatedAt })),
-      problems.map((item) => ({ url: `${base}/problems/${item.slug}`, lastModified: item.updatedAt })),
-      articles.map((item) => ({ url: `${base}/resources/${item.slug}`, lastModified: item.updatedAt })),
+      services.map((item) => ({ url: `${base}/services/${item.slug}`, lastModified: item.updatedAt, changeFrequency: "weekly" as const, priority: 0.9 })),
+      problems.map((item) => ({ url: `${base}/problems/${item.slug}`, lastModified: item.updatedAt, changeFrequency: "weekly" as const, priority: 0.9 })),
+      articles.map((item) => ({ url: `${base}/blog/${item.slug}`, lastModified: item.updatedAt, changeFrequency: "weekly" as const, priority: 0.7 })),
     );
 }
