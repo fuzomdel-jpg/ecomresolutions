@@ -27,10 +27,12 @@ export const env = envSchema.parse(process.env);
 
 export function authSecret() {
   const secret = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
-  if (!secret) {
-    throw new Error("NEXTAUTH_SECRET or AUTH_SECRET is required");
+  if (secret) return secret;
+  // Hostinger (and other hosts) compile the app before runtime env is always present.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return "build-time-placeholder";
   }
-  return secret;
+  throw new Error("NEXTAUTH_SECRET or AUTH_SECRET is required");
 }
 
 export function appUrl() {
