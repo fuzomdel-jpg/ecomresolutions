@@ -84,6 +84,21 @@ export const serviceUpdateSchema = z.object({
   seoDescription: z.string().min(1),
 });
 
+export const knowledgeArticleSchema = z.object({
+  title: z.string().trim().min(1).max(180),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens."),
+  excerpt: z.string().trim().min(1).max(320),
+  body: z.string().trim().min(1).max(50000),
+  published: z.boolean(),
+  seoTitle: z.string().trim().max(70).optional().default(""),
+  seoDescription: z.string().trim().max(160).optional().default(""),
+});
+
 export const ALLOWED_UPLOAD_TYPES = [
   "image/png",
   "image/jpeg",

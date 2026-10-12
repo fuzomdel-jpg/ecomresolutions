@@ -10,7 +10,7 @@ const items = [
   ["Leads", "/admin/leads"],
   ["Services", "/admin/services"],
   ["Platforms", "/admin/platforms"],
-  ["Knowledge", "/admin/knowledge"],
+  ["Blog", "/admin/knowledge"],
   ["Team", "/admin/team"],
   ["Analytics", "/admin/analytics"],
   ["Settings", "/admin/settings"],
