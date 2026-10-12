@@ -12,7 +12,7 @@
     "build": "prisma generate && next build",
     "start": "node server.js",
     "lint": "eslint",
-    "test": "tsx --test src/lib/search.test.ts",
+    "test": "tsx --test src/lib/search.test.ts src/lib/leads/qualify.test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",

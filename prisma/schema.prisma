@@ -534,3 +534,146 @@ model AnalyticsEvent {
 
   @@index([name, createdAt])
 }
+
+enum LeadMarket {
+  US
+  DUBAI
+}
+
+enum LeadLocationStatus {
+  VERIFIED
+  UNVERIFIED
+}
+
+enum LeadContactStatus {
+  UNVERIFIED
+  PUBLIC_LISTING
+  VERIFIED
+}
+
+enum LeadPriorityBand {
+  A
+  B
+  C
+  DISQUALIFIED
+}
+
+enum OutreachDraftStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SENT
+}
+
+model LeadCompany {
+  id                   String             @id @default(cuid())
+  dedupeKey            String             @unique
+  name                 String
+  website              String
+  country              String
+  region               String
+  city                 String
+  headquartersLocation String
+  operatingLocations   Json
+  locationEvidence     String             @db.Text
+  locationSourceUrl    String
+  locationStatus       LeadLocationStatus @default(UNVERIFIED)
+  shipsTo              String[]
+  suppressed           Boolean            @default(false)
+  suppressionReason    String?
+  isSample             Boolean            @default(false)
+  lastVerifiedAt       DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  markets  LeadCompanyMarket[]
+  contacts LeadContact[]
+  sources  LeadSource[]
+  drafts   OutreachDraft[]
+
+  @@index([locationStatus])
+  @@index([suppressed])
+}
+
+model LeadCompanyMarket {
+  id                     String           @id @default(cuid())
+  companyId              String
+  market                 LeadMarket
+  eligible               Boolean
+  qualified              Boolean          @default(false)
+  reason                 String           @db.Text
+  sellingMarketLocation  String
+  targetMarketplace      String
+  marketplaceEvidence    String           @db.Text
+  opportunity            String           @db.Text
+  leadScore              Int              @default(0)
+  priority               LeadPriorityBand @default(DISQUALIFIED)
+  recommendedServiceSlug String
+  recommendedServiceName String
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  company LeadCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, market])
+  @@index([market, priority])
+  @@index([market, qualified])
+}
+
+model LeadContact {
+  id                 String            @id @default(cuid())
+  companyId          String
+  name               String
+  title              String
+  profileUrl         String?
+  email              String?
+  verificationStatus LeadContactStatus @default(UNVERIFIED)
+  relevant           Boolean           @default(false)
+  optedOut           Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+
+  company LeadCompany     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  drafts  OutreachDraft[]
+
+  @@index([companyId])
+  @@index([email])
+}
+
+model LeadSource {
+  id        String   @id @default(cuid())
+  companyId String
+  url       String
+  label     String
+  createdAt DateTime @default(now())
+
+  company LeadCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model OutreachDraft {
+  id              String              @id @default(cuid())
+  companyId       String
+  contactId       String?
+  subject         String
+  body            String              @db.Text
+  status          OutreachDraftStatus @default(DRAFT)
+  approvedById    String?
+  approvedAt      DateTime?
+  sentAt          DateTime?
+  rejectionReason String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  company LeadCompany  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact LeadContact? @relation(fields: [contactId], references: [id])
+}
+
+model LeadSuppression {
+  id        String   @id @default(cuid())
+  kind      String
+  value     String
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@unique([kind, value])
+}

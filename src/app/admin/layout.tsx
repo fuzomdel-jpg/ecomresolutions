@@ -7,6 +7,7 @@ const items = [
   ["Inbox", "/admin"],
   ["Cases", "/admin/cases"],
   ["Customers", "/admin/customers"],
+  ["Leads", "/admin/leads"],
   ["Services", "/admin/services"],
   ["Platforms", "/admin/platforms"],
   ["Knowledge", "/admin/knowledge"],
