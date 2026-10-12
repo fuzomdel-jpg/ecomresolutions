@@ -1,6 +1,9 @@
 """Enrich e-commerce leads with short outreach hooks using DSPy and Groq.
 
 Reads leads_input.csv, compacts each row, and writes enriched_leads.csv.
+Only United States headquarters and Dubai headquarters or operations are enriched.
+Set ALLOW_OTHER_COUNTRIES=1 to keep other countries. A marketplace column is never
+treated as proof of headquarters.
 """
 
 from __future__ import annotations
@@ -17,6 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent
 INPUT_PATH = BASE_DIR / "leads_input.csv"
 OUTPUT_PATH = BASE_DIR / "enriched_leads.csv"
 OUTPUT_FIELDS = ("opening", "hook1", "hook2", "offer", "subject")
+US_COUNTRIES = {"united states", "united states of america", "usa", "us"}
+UAE_COUNTRIES = {"united arab emirates", "uae"}
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -56,6 +61,43 @@ class LeadAuditModule(dspy.Module):
         return self.predict(brand_info=brand_info)
 
 
+def _norm(value: object) -> str:
+    return _text(value).lower().replace(".", "")
+
+
+def _first(row: pd.Series, *keys: str) -> str:
+    for key in keys:
+        if key not in row.index:
+            continue
+        value = _norm(row.get(key))
+        if value:
+            return value
+    return ""
+
+
+def target_market(row: pd.Series) -> str:
+    """Return US, DUBAI, or an empty string when the row is outside both markets."""
+    country = _first(row, "headquarters_country", "country")
+    region = _first(row, "headquarters_region", "region", "state", "emirate")
+    city = _first(row, "city")
+    operating_country = _first(row, "operating_country")
+    operating_region = _first(row, "operating_region")
+    operating_city = _first(row, "operating_city")
+    substantial = _norm(row.get("substantial_operations", "")) in {"1", "true", "yes"}
+    markets: list[str] = []
+    if country in US_COUNTRIES or (substantial and operating_country in US_COUNTRIES):
+        markets.append("US")
+    dubai_hq = country in UAE_COUNTRIES and (region == "dubai" or city == "dubai")
+    dubai_ops = substantial and operating_country in UAE_COUNTRIES and (operating_region == "dubai" or operating_city == "dubai")
+    if dubai_hq or dubai_ops:
+        markets.append("DUBAI")
+    if markets:
+        return "|".join(markets)
+    if os.getenv("ALLOW_OTHER_COUNTRIES") == "1" and country:
+        return "OTHER"
+    return ""
+
+
 def _text(value: object) -> str:
     if value is None:
         return ""
@@ -81,6 +123,14 @@ def enrich_leads(
 
     for index, row in leads.iterrows():
         record = {column: row[column] for column in leads.columns}
+        market = target_market(row)
+        record["target_market"] = market
+        if not market:
+            for field in OUTPUT_FIELDS:
+                record[field] = ""
+            record["error"] = "Outside the United States and Dubai target markets, or the location is Unverified."
+            records.append(record)
+            continue
         try:
             result = module(
                 brand=_text(row.get("brand")),

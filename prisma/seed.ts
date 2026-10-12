@@ -191,6 +191,12 @@ async function main() {
     });
   }
 
+  const { saveResearchConfig, seedSampleLeads } = await import("../src/lib/leads/persist");
+  const { DEFAULT_RESEARCH_CONFIG } = await import("../src/lib/leads/types");
+  const existingConfig = await prisma.appSetting.findUnique({ where: { key: "leadResearchConfig" } });
+  if (!existingConfig) await saveResearchConfig(DEFAULT_RESEARCH_CONFIG);
+  await seedSampleLeads();
+
   await upsertStaffUser(
     process.env.SEED_ADMIN_EMAIL,
     process.env.SEED_ADMIN_PASSWORD,
